@@ -1,41 +1,60 @@
-package models
+package controllers
 
 import (
-    "time"
-
-    "github.com/jinzhu/gorm"
+    "net/http"
+    "github.com/gin-gonic/gin"
+    "gin-user-management/models"
 )
 
-type User struct {
-    UserID            uint      `gorm:"primary_key" json:"user_id"`
-    Username          string    `gorm:"type:varchar(100);unique_index" json:"username"`
-    Password          string    `json:"password"`
-    LoginAttempts     int       `json:"login_attempts"`
-    LastLoginAttempt  time.Time `json:"last_login_attempt"`
-    RememberMeToken   string    `json:"remember_me_token"`
-    CreatedAt         time.Time `json:"created_at"`
-    UpdatedAt         time.Time `json:"updated_at"`
+func GetUsers(c *gin.Context) {
+    var users []models.User
+    if err := models.DB.Find(&users).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"data": users})
 }
 
-type Role struct {
-    RoleID    uint      `gorm:"primary_key" json:"role_id"`
-    RoleName  string    `gorm:"type:varchar(100);unique_index" json:"role_name"`
-    CreatedAt time.Time `json:"created_at"`
-    UpdatedAt time.Time `json:"updated_at"`
+func GetUser(c *gin.Context) {
+    var user models.User
+    id := c.Param("id")
+
+    if err := models.DB.First(&user, id).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"data": user})
 }
 
-type Group struct {
-    ID        uint      `gorm:"primary_key" json:"id"`
-    RoleID    uint      `json:"role_id"`
-    UserID    uint      `json:"user_id"`
-    CreatedAt time.Time `json:"created_at"`
-    UpdatedAt time.Time `json:"updated_at"`
-    Role      Role      `gorm:"foreignkey:RoleID"`
-    User      User      `gorm:"foreignkey:UserID"`
+func UpdateUser(c *gin.Context) {
+    var user models.User
+    id := c.Param("id")
+
+    if err := models.DB.First(&user, id).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+
+    if err := c.ShouldBindJSON(&user); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    models.DB.Save(&user)
+    c.JSON(http.StatusOK, gin.H{"data": user})
 }
 
-func Migrate(db *gorm.DB) {
-    db.AutoMigrate(&User{})
-    db.AutoMigrate(&Role{})
-    db.AutoMigrate(&Group{})
+func DeleteUser(c *gin.Context) {
+    var user models.User
+    id := c.Param("id")
+
+    if err := models.DB.First(&user, id).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+
+    models.DB.Delete(&user)
+    c.JSON(http.StatusOK, gin.H{"data": true})
 }
