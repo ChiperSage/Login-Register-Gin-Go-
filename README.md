@@ -30,7 +30,7 @@ This is a simple user management API built with Golang and the Gin framework. It
 
 1. Clone the repository:
 
-    `git clone https://github.com/yourusername/gin-user-management.git`
+    `git clone https://github.com/ChiperSage/gin-user-management.git`
 
     `cd gin-user-management`
 
