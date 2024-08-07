@@ -8,7 +8,6 @@ import (
     "github.com/dgrijalva/jwt-go"
     "golang.org/x/crypto/bcrypt"
     "gin-user-management/models"
-    "github.com/jinzhu/gorm"
 )
 
 var jwtKey = []byte("secret_key")
